@@ -293,13 +293,16 @@ class permission(baseldap.LDAPObject):
 
         rights = entry.get('attributelevelrights')
         if rights:
-            rights['memberof'] = rights['ipapermtargetfilter']
-            rights['targetgroup'] = rights['ipapermtarget']
+            if 'ipapermtargetfilter' in rights:
+                rights['memberof'] = rights['ipapermtargetfilter']
+            if 'ipapermtarget' in rights:
+                rights['targetgroup'] = rights['ipapermtarget']
 
-            type_rights = set(rights['ipapermtarget'])
-            type_rights.intersection_update(rights['ipapermlocation'])
-            rights['type'] = ''.join(sorted(type_rights,
-                                            key=rights['ipapermtarget'].index))
+                type_rights = set(rights['ipapermtarget'])
+                location_rights = set(rights.get('ipapermlocation', ''))
+                type_rights.intersection_update(location_rights)
+                rights['type'] = ''.join(sorted(
+                    type_rights, key=rights['ipapermtarget'].index))
 
             if not client_has_capability(options['version'], 'permissions2'):
                 for old_name, new_name in _DEPRECATED_OPTION_ALIASES.items():
